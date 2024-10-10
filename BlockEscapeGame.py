@@ -14,9 +14,9 @@ RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 
 # Player settings
-player_size = 50
-player_x = width // 2 - player_size // 2
-player_y = height - 2 * player_size
+player_radius = 25  # Changed from player_size to player_radius
+player_x = width // 2
+player_y = height - 2 * player_radius
 player_speed = 5
 
 # Block settings
@@ -40,12 +40,18 @@ def move_blocks(block_list):
         block[1] += block_speed
     block_list[:] = [block for block in block_list if block[1] < height]
 
-# Detect collision
+# Detect collision between circle player and rectangular block
 def detect_collision(player_x, player_y, block_x, block_y):
-    if (block_x < player_x < block_x + block_size or block_x < player_x + player_size < block_x + block_size) and \
-       (block_y < player_y < block_y + block_size or block_y < player_y + player_size < block_y + block_size):
-        return True
-    return False
+    # Calculate centers of circle and rectangle
+    circle_center = (player_x, player_y)
+    rect_center = (block_x + block_size/2, block_y + block_size/2)
+    
+    # Calculate distance between centers
+    distance = ((circle_center[0] - rect_center[0]) ** 2 + 
+                (circle_center[1] - rect_center[1]) ** 2) ** 0.5
+    
+    # If distance is less than sum of circle radius and half of rectangle's diagonal, collision occurred
+    return distance < (player_radius + block_size/2)
 
 # Game loop
 running = True
@@ -61,9 +67,9 @@ while running:
 
     # Player movement
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT] and player_x > 0:
+    if keys[pygame.K_LEFT] and player_x > player_radius:
         player_x -= player_speed
-    if keys[pygame.K_RIGHT] and player_x < width - player_size:
+    if keys[pygame.K_RIGHT] and player_x < width - player_radius:
         player_x += player_speed
 
     # Create new blocks
@@ -73,8 +79,8 @@ while running:
     # Move blocks
     move_blocks(block_list)
 
-    # Draw player
-    pygame.draw.rect(screen, BLUE, (player_x, player_y, player_size, player_size))
+    # Draw player (as circle)
+    pygame.draw.circle(screen, BLUE, (int(player_x), int(player_y)), player_radius)
 
     # Draw blocks
     for block in block_list:
