@@ -10,11 +10,11 @@ pygame.display.set_caption("Escape the Blocks")
 # Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-BLUE = (0, 0, 255)
+YELLOW = (255, 255, 0)  # New color for player
+ORANGE = (255, 165, 0)  # New color for blocks
 
 # Player settings
-player_radius = 25  # Changed from player_size to player_radius
+player_radius = 25
 player_x = width // 2
 player_y = height - 2 * player_radius
 player_speed = 5
@@ -79,12 +79,12 @@ while running:
     # Move blocks
     move_blocks(block_list)
 
-    # Draw player (as circle)
-    pygame.draw.circle(screen, BLUE, (int(player_x), int(player_y)), player_radius)
+    # Draw player (as yellow circle)
+    pygame.draw.circle(screen, YELLOW, (int(player_x), int(player_y)), player_radius)
 
-    # Draw blocks
+    # Draw blocks (as orange rectangles)
     for block in block_list:
-        pygame.draw.rect(screen, RED, (block[0], block[1], block_size, block_size))
+        pygame.draw.rect(screen, ORANGE, (block[0], block[1], block_size, block_size))
 
         # Check for collision
         if detect_collision(player_x, player_y, block[0], block[1]):
