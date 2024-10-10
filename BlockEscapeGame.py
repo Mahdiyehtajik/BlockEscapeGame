@@ -1,17 +1,18 @@
 import pygame
 import random
+import math
 
 # Initial settings
 pygame.init()
 width, height = 400, 600
 screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Escape the Blocks")
+pygame.display.set_caption("Escape the Missiles")
 
 # Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-YELLOW = (255, 255, 0)  # New color for player
-ORANGE = (255, 165, 0)  # New color for blocks
+YELLOW = (255, 255, 0)
+ORANGE = (255, 165, 0)
 
 # Player settings
 player_radius = 25
@@ -19,39 +20,49 @@ player_x = width // 2
 player_y = height - 2 * player_radius
 player_speed = 5
 
-# Block settings
-block_size = 50
-block_speed = 5
-block_list = []
+# Missile settings
+missile_width = 20
+missile_height = 40
+missile_speed = 5
+missile_list = []
 
 # Scoring
 score = 0
 font = pygame.font.SysFont("monospace", 35)
 
-# Create new block
-def create_block():
-    block_x = random.randint(0, width - block_size)
-    block_y = -block_size
-    block_list.append([block_x, block_y])
+# Create new missile
+def create_missile():
+    missile_x = random.randint(0, width - missile_width)
+    missile_y = -missile_height
+    missile_list.append([missile_x, missile_y])
 
-# Move blocks
-def move_blocks(block_list):
-    for block in block_list:
-        block[1] += block_speed
-    block_list[:] = [block for block in block_list if block[1] < height]
+# Move missiles
+def move_missiles(missile_list):
+    for missile in missile_list:
+        missile[1] += missile_speed
+    missile_list[:] = [missile for missile in missile_list if missile[1] < height]
 
-# Detect collision between circle player and rectangular block
-def detect_collision(player_x, player_y, block_x, block_y):
-    # Calculate centers of circle and rectangle
-    circle_center = (player_x, player_y)
-    rect_center = (block_x + block_size/2, block_y + block_size/2)
+# Draw missile (triangle shape)
+def draw_missile(x, y):
+    points = [
+        (x + missile_width // 2, y),  # Top point
+        (x, y + missile_height),      # Bottom left
+        (x + missile_width, y + missile_height)  # Bottom right
+    ]
+    pygame.draw.polygon(screen, ORANGE, points)
+
+# Detect collision between circle player and triangular missile
+def detect_collision(player_x, player_y, missile_x, missile_y):
+    # Simplified collision detection - checking if player circle intersects with missile bounding box
+    missile_center_x = missile_x + missile_width // 2
+    missile_center_y = missile_y + missile_height // 2
     
     # Calculate distance between centers
-    distance = ((circle_center[0] - rect_center[0]) ** 2 + 
-                (circle_center[1] - rect_center[1]) ** 2) ** 0.5
+    distance = math.sqrt((player_x - missile_center_x) ** 2 + 
+                         (player_y - missile_center_y) ** 2)
     
-    # If distance is less than sum of circle radius and half of rectangle's diagonal, collision occurred
-    return distance < (player_radius + block_size/2)
+    # Using a slightly smaller collision radius for better gameplay
+    return distance < (player_radius + missile_width // 2)
 
 # Game loop
 running = True
@@ -72,22 +83,22 @@ while running:
     if keys[pygame.K_RIGHT] and player_x < width - player_radius:
         player_x += player_speed
 
-    # Create new blocks
+    # Create new missiles
     if random.randint(0, 20) == 0:
-        create_block()
+        create_missile()
 
-    # Move blocks
-    move_blocks(block_list)
+    # Move missiles
+    move_missiles(missile_list)
 
-    # Draw player (as yellow circle)
+    # Draw player
     pygame.draw.circle(screen, YELLOW, (int(player_x), int(player_y)), player_radius)
 
-    # Draw blocks (as orange rectangles)
-    for block in block_list:
-        pygame.draw.rect(screen, ORANGE, (block[0], block[1], block_size, block_size))
+    # Draw missiles
+    for missile in missile_list:
+        draw_missile(missile[0], missile[1])
 
         # Check for collision
-        if detect_collision(player_x, player_y, block[0], block[1]):
+        if detect_collision(player_x, player_y, missile[0], missile[1]):
             running = False
 
     # Display score
@@ -98,9 +109,9 @@ while running:
     pygame.display.flip()
     clock.tick(30)
 
-    # Increase score and block speed
+    # Increase score and missile speed
     score += 1
     if score % 100 == 0:
-        block_speed += 1
+        missile_speed += 1
 
 pygame.quit()
